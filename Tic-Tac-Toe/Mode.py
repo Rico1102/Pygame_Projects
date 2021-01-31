@@ -1,5 +1,6 @@
 import pygame
-from Multiplayer import Game
+from Multiplayer import Game as Multiple
+from SinglePlayer import Game as Single
 
 class Mode():
     def __init__(self):
@@ -41,10 +42,11 @@ class Mode():
                     pos = pygame.mouse.get_pos()
                     if(pos[0]>=45 and pos[0]<=255 and pos[1]>=75 and pos[1]<=125):
                         self.destroy_board()
+                        game = Single()
                         self.show_menu()
                     if(pos[0] >= 45 and pos[0] <= 255 and pos[1] >= 175 and pos[1] <= 225):
                         self.destroy_board()
-                        game = Game()
+                        game = Multiple()
                         self.show_menu()
 
     def destroy_board(self):

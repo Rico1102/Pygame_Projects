@@ -2,7 +2,7 @@ import pygame
 from pygame.constants import MOUSEBUTTONDOWN
 from Tile import Tile
 import threading
-import time
+import os
 
 class Board():
     def __init__(self):
@@ -58,7 +58,13 @@ class Board():
         self.create_outline(x, y, s_x, s_y, width)
 
     def draw_board(self):
-        self.create_rect(9*38+48 , 3 , 40 , 40)
+        font = pygame.font.Font('freesansbold.ttf', 10)
+        text = font.render("Solve", True, self.White)
+        textRect = text.get_rect()
+        textRect.center = (410, 23)
+        pygame.draw.rect(self.canvas, self.Black, [390, 13, 40, 20])
+        self.canvas.blit(text, textRect)
+        # self.create_rect(9*38+48 , 3 , 40 , 40)
         for i in range(0, 9):
             for j in range(0, 9):
                 self.tiles[i][j].pos_y = i * 38 + 45
@@ -151,7 +157,7 @@ class Board():
                     self.destroy_board()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
-                    if (pos[0]>=390 and pos[0]<=430) and (pos[1]>=3 and pos[1]<=43) :
+                    if (pos[0]>=390 and pos[0]<=430) and (pos[1]>=13 and pos[1]<=33) :
                         self.solve_sudoku()
                     x = (pos[1] - 45)//38
                     y = (pos[0] - 45)//38
@@ -233,11 +239,11 @@ class Board():
                     if self.backtrack(nx , ny):
                         return True
                     self.board[x][y] = '-'
-                    self.tiles[x][y].text = '-'
+                    self.tiles[x][y].text = ''
                     self.tiles[self.active_x][self.active_y].color = self.Green
                 else:
                     self.board[x][y] = '-'
-                    self.tiles[x][y].text = '-'
+                    self.tiles[x][y].text = ''
                     self.tiles[self.active_x][self.active_y].color = self.Green
                 if(i == 9):
                     return False

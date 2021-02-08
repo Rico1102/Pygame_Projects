@@ -1,6 +1,7 @@
 import pygame
 from pygame.constants import MOUSEBUTTONDOWN
 from Tile import Tile
+from Generate_Sudoku import generate_sudoku
 import threading
 import os
 
@@ -17,15 +18,16 @@ class Board():
         self.active = False
         self.active_x = -1
         self.active_y = -1
-        self.board = [['-', '-', '-', '2', '6', '-', '7', '-', '1'],
-                      ['6', '8', '-', '-', '7', '-', '-', '9', '-'],
-                      ['1', '9', '-', '-', '-', '4', '5', '-', '-'],
-                      ['8', '2', '-', '1', '-', '-', '-', '4', '-'],
-                      ['-', '-', '4', '6', '-', '2', '9', '-', '-'],
-                      ['-', '5', '-', '-', '-', '3', '-', '2', '8'],
-                      ['-', '-', '9', '3', '-', '-', '-', '7', '4'],
-                      ['-', '4', '-', '-', '5', '-', '-', '3', '6'],
-                      ['7', '-', '3', '-', '1', '8', '-', '-', '-']]
+        # self.board = [['-', '-', '-', '2', '6', '-', '7', '-', '1'],
+        #               ['6', '8', '-', '-', '7', '-', '-', '9', '-'],
+        #               ['1', '9', '-', '-', '-', '4', '5', '-', '-'],
+        #               ['8', '2', '-', '1', '-', '-', '-', '4', '-'],
+        #               ['-', '-', '4', '6', '-', '2', '9', '-', '-'],
+        #               ['-', '5', '-', '-', '-', '3', '-', '2', '8'],
+        #               ['-', '-', '9', '3', '-', '-', '-', '7', '4'],
+        #               ['-', '4', '-', '-', '5', '-', '-', '3', '6'],
+        #               ['7', '-', '3', '-', '1', '8', '-', '-', '-']]
+        self.board , self.solution = generate_sudoku()
         self.tiles = [[], [], [], [], [], [], [], [], []]
         self.font = pygame.font.Font('freesansbold.ttf', 20)
         self.solving = False
@@ -158,14 +160,20 @@ class Board():
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
                     if (pos[0]>=390 and pos[0]<=430) and (pos[1]>=13 and pos[1]<=33) :
-                        self.solve_sudoku()
+                        # self.solve_sudoku()
+                        self.board = self.solution
+                        for i in range(0, 9):
+                            for j in range(0, 9):
+                                if not self.tiles[i][j].present:
+                                    self.tiles[i][j].text = self.board[i][j]
+                                    self.tiles[i][j].color = self.Green
+                        self.update_board()
                     x = (pos[1] - 45)//38
                     y = (pos[0] - 45)//38
                     if (x<9 and x>=0) and (y<9 and y>=0):
                         self.active = True
                         self.active_x = x
                         self.active_y = y
-
                     else:
                         self.active = False
                     self.update_board()
@@ -209,8 +217,6 @@ class Board():
         self.solving = True
         t1 = threading.Thread(target=self.backtrack, args=(0, 0,))
         t1.start()
-        
-        
 
     def get_next(self, x, y):
         if(y==8):

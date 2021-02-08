@@ -1,6 +1,8 @@
 import pygame
 from pygame.constants import MOUSEBUTTONDOWN
 from Tile import Tile
+import threading
+import time
 
 class Board():
     def __init__(self):
@@ -26,6 +28,8 @@ class Board():
                       ['7', '-', '3', '-', '1', '8', '-', '-', '-']]
         self.tiles = [[], [], [], [], [], [], [], [], []]
         self.font = pygame.font.Font('freesansbold.ttf', 20)
+        self.solving = False
+        self.solved = False
         row = 0
         for i in self.board:
             for j in i:
@@ -54,6 +58,7 @@ class Board():
         self.create_outline(x, y, s_x, s_y, width)
 
     def draw_board(self):
+        self.create_rect(9*38+48 , 3 , 40 , 40)
         for i in range(0, 9):
             for j in range(0, 9):
                 self.tiles[i][j].pos_y = i * 38 + 45
@@ -107,6 +112,24 @@ class Board():
                 if flag:
                     self.tiles[x][y].color = self.Green
 
+    def check_point(self, x, y):
+        if self.board[x][y] == '-' or self.tiles[x][y].present:
+            return True
+        for i in range(0 , 9):
+            if (self.board[x][i] == self.board[x][y] and i!=y) or (self.board[i][y] == self.board[x][y] and i!=x):
+                self.tiles[x][y].color = self.Red
+                return False
+        base_x = 3*(x//3)
+        base_y = 3*(y//3)
+        for i in range(0 , 3):
+            for j in range(0 , 3):
+                if(base_x+i==x and base_y+j==y):
+                    continue
+                elif(self.board[base_x+i][base_y+j] == self.board[x][y]):
+                    self.tiles[x][y].color = self.Red
+                    return False
+        self.tiles[x][y].color = self.Green
+        return True
 
     def game_over(self):
         for i in range(0 , 9):
@@ -118,12 +141,18 @@ class Board():
     def play_game(self, turn=0):
         run = True
         while run:
+            if self.solved:
+                self.show_text("Sudoku solved")
             for event in pygame.event.get():
+                if self.solving:
+                    continue
                 if event.type == pygame.QUIT:
                     run = False
                     self.destroy_board()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
+                    if (pos[0]>=390 and pos[0]<=430) and (pos[1]>=3 and pos[1]<=43) :
+                        self.solve_sudoku()
                     x = (pos[1] - 45)//38
                     y = (pos[0] - 45)//38
                     if (x<9 and x>=0) and (y<9 and y>=0):
@@ -169,5 +198,49 @@ class Board():
                 if event.type == pygame.QUIT:
                     self.destroy_board()
                     exit(0)
+
+    def solve_sudoku(self):
+        self.solving = True
+        t1 = threading.Thread(target=self.backtrack, args=(0, 0,))
+        t1.start()
+        
+        
+
+    def get_next(self, x, y):
+        if(y==8):
+            return x+1 , 0
+        else:
+            return x , y+1
+
+
+    def backtrack(self, x, y):
+        if(x==9 and y==0):
+            self.solving = False
+            self.solved = True
+            return True
+        if self.tiles[x][y].present:
+            nx , ny = self.get_next(x , y)
+            return self.backtrack(nx , ny)
+        else:
+            for i in range(1 , 10):
+                self.board[x][y] = str(i)
+                self.tiles[x][y].text = str(i)
+                self.tiles[self.active_x][self.active_y].color = self.Green
+                self.check_board()
+                self.update_board()
+                if self.tiles[x][y].color == self.Green :
+                    nx , ny = self.get_next(x , y)
+                    if self.backtrack(nx , ny):
+                        return True
+                    self.board[x][y] = '-'
+                    self.tiles[x][y].text = '-'
+                    self.tiles[self.active_x][self.active_y].color = self.Green
+                else:
+                    self.board[x][y] = '-'
+                    self.tiles[x][y].text = '-'
+                    self.tiles[self.active_x][self.active_y].color = self.Green
+                if(i == 9):
+                    return False
+        return True
 
 board = Board()
